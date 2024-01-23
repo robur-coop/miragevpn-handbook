@@ -7,7 +7,7 @@ configuration as 'production-ready'. We'll be using Debian 12 and OpenVPN 2.6.3.
 
 So you probably have SSH access on your server. Let's connect to the server and
 install OpenVPN.
-```shell-session
+```sh
 $ ssh root@<ipv4>
 $ apt update
 $ apt upgrade
@@ -21,7 +21,7 @@ things). We are going to create an "authority" and create our users' keys via
 this authority. In this way, our OpenVPN server will be able to authenticate
 users not by their keys but by the fact that the keys were created via our
 authority.
-```shell-session
+```sh
 $ mkdir easy-rsa
 $ ln -s /usr/share/easy-rsa/* ~/easy-rsa/
 $ chmod 700 easy-rsa
@@ -39,7 +39,7 @@ $ ./easyrsa sign server server
 
 We then need to copy the elements we need to set up our server and generate the
 final material required.
-```shell-session
+```sh
 $ cp pki/issued/server.crt pki/ca.crt pkg/dh.pem /etc/openvpn/server/
 $ cp pki/private/server.key /etc/openvpn/server
 $ cd /etc/openvpn/server
@@ -47,7 +47,7 @@ $ openvpn --genkey secret ta.key
 ```
 
 Now we need to create a client identity[^note].
-```shell-session
+```sh
 $ cd ~/easyrsa
 $ ./easyrsa gen-req alice nopass
 $ ./easyrsa sign-req client alice
@@ -69,7 +69,7 @@ We can now move on to configuring the server. This consists of a simple file and
 setting up a private network. The configuration file simply describes where the
 materials needed to launch the server are located.
 
-```shell-session
+```sh
 $ cat >/etc/openvpn/server/server.conf<<EOF
 proto tcp
 port 1194
@@ -93,9 +93,17 @@ EOF
 There's a lot to be said for this configuration. The first is the use of
 `tls-auth` to encrypt our control channel. There are other ways of doing this,
 which we'll describe later, but let's start by having a working server. TCP is
-also used as a protocol (instead of UDP).
+also used as a protocol (instead of UDP). We will also assign a specific IP for
+our `alice` client:
 
-```shell-session
+```sh
+$ echo "alice,10.8.0.2," >> /etc/openvpn/server/ipp.txt
+```
+
+Finally, we configure our network so that our customers can communicate with
+Internet:
+
+```sh
 $ sysctl -w net.ipv4.ip_forward=1
 $ ip route list default | cut -d' ' -f5
 eth0
