@@ -8,7 +8,7 @@ $ rustup install stable
 $ cargo install mdbook
 $ cargo install mdbook-graphviz
 $ export PATH=$PATH:$HOME/.cargo/bin
-$ git clone https://git.robur.coop/robur/miragevpn-book
+$ git clone https://git.robur.coop/robur/miragevpn-handbook
 $ cd miragevpn-book
 $ mdbook serve
 ```
