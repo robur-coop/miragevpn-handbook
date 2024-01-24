@@ -160,9 +160,10 @@ different solutions later, particularly QubesOS, which uses Xen.
 
 We can now start configuring our client. The materials required for our client
 are:
-1) our client's certificate `alice.crt`
-2) her private key `alice.key`
-3) the `ta.key` file we generated on our server
+1) our `ca.crt`
+2) our client's certificate `alice.crt`
+3) her private key `alice.key`
+4) the `ta.key` file we generated on our server
 
 Our unikernel has no file system. The idea is to create an image of our
 configuration which can then be used by our unikernel. Fortunately, OpenVPN
@@ -170,16 +171,16 @@ allows you to put the content of our materials directly into the configuration
 file:
 
 ```sh
-$ cat >config.sh<<STOP
+$ cat >config.sh<<EOF
 #!/bin/bash
 
-CA_FILE=$1
-CRT_FILE=$2
-KEY_FILE=$3
-TA_FILE=$4
-OUTPUT_FILE=$5
+CA_FILE=\$1
+CRT_FILE=\$2
+KEY_FILE=\$3
+TA_FILE=\$4
+OUTPUT_FILE=\$5
 
-cat >$OUTPUT_FILE<<EOF
+cat >\$OUTPUT_FILE<<PRELUDE
 client
 proto tcp
 remote <ipv4> 1194
@@ -187,37 +188,37 @@ nobind
 persist-key
 cipher AES-256-CBC
 remote-cert-tls server
+PRELUDE
+
+function extract() {
+  cat \$2 | sed -ne "/-BEGIN \${1}-/,/-END \${1}-/p"
+}
+
+echo "<ca>" >> \$OUTPUT_FILE
+extract "CERTIFICATE" \$CA_FILE >> \$OUTPUT_FILE
+echo "</ca>" >> \$OUTPUT_FILE
+
+echo "<cert>" >> \$OUTPUT_FILE
+extract "CERTIFICATE" \$CRT_FILE >> \$OUTPUT_FILE
+echo "</cert>" >> \$OUTPUT_FILE
+
+echo "<key>" >> \$OUTPUT_FILE
+extract "PRIVATE KEY" \$KEY_FILE >> \$OUTPUT_FILE
+echo "</key>" >> \$OUTPUT_FILE
+
+echo "tls-auth [inline] 1" >> \$OUTPUT_FILE
+echo "<tls-auth>" >> \$OUTPUT_FILE
+extract "OpenVPN Static key V1" \$TA_FILE >> \$OUTPUT_FILE
+echo "</tls-auth>" >> \$OUTPUT_FILE
+
+SIZE=\$(stat --printf="%s" \$OUTPUT_FILE)
+truncate -s \$(( ( ( \$SIZE + 512 - 1 ) / 512 ) * 512 )) \$OUTPUT_FILE
 EOF
-
-echo "<ca>" >> $OUTPUT_FILE
-cat $CA_FILE | \
-  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' >> $OUTPUT_FILE
-echo "</ca>" >> $OUTPUT_FILE
-
-echo "<cert>" >> $OUTPUT_FILE
-cat $CRT_FILE | \
-  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' >> $OUTPUT_FILE
-echo "</cert>" >> $OUTPUT_FILE
-
-echo "<key>" >> $OUTPUT_FILE
-cat $KEY_FILE | \
-  sed -ne '/-BEGIN PRIVATE KEY-/,/-END PRIVATE KEY-/p' >> $OUTPUT_FILE
-echo "</key>" >> $OUTPUT_FILE
-
-echo "tls-auth [inline] 1" >> $OUTPUT_FILE
-echo "<tls-auth>" >> $OUTPUT_FILE
-cat $TA_FILE | \
-  sed -ne '/-BEGIN OpenVPN Static key V1-/,/-END OpenVPN Static key V1-/p' >> $OUTPUT_FILE
-echo "</tls-auth>" >> $OUTPUT_FILE
-
-SIZE=$(stat --printf="%s" $OUTPUT_FILE)
-truncate -s $(( ( ( $SIZE + 512 - 1 ) / 512 ) * 512 )) $OUTPUT_FILE
-STOP
 ```
 
-In this little script, you need to replace <ipv4> with the public IP address of
-your OpenVPN server. This little script will generate a compatible configuration
-file for our unikernel. Just run it this way:
+In this little script, you need to replace `<ipv4>` with the public IP address
+of your OpenVPN server. This little script will generate a compatible
+configuration file for our unikernel. Just run it this way:
 
 ```sh
 $ scp root@<ipv4>:/root/easy-rsa/pki/ca.crt .
@@ -228,13 +229,57 @@ $ chmod +x config.sh
 $ ./config.sh ca.crt alice.crt alice.key ta.key alice.config
 ```
 
+The last command creates a file which can be used as a "block" by our unikernel.
+The constraint is that its size must be a multiple of 512 and that the _extra_
+bytes must correspond to `'\000'`.
+
 # How to launch your MirageVPN client
+
+We can now launch our unikernel. This involves using our Solo5 "tender" and
+defining the right routes to redirect all our traffic to br1 and to ensure that
+all encrypted traffic leaving our `br1` goes to our OpenVPN server. 
+
+We need to know 2 pieces of information: the interface used to communicate with
+Internet and our gateway.
+
+```sh
+$ export INTERFACE=$(ip route | grep default | cut -f5 -d' ')
+$ export GATEWAY=$(ip route | grep default | cut -f3 -d' ')
+```
+
+We can therefore specify that any packets destined for our OpenVPN server must
+pass through our interface via our gateway.
+
+```sh
+$ sudo ip route add <ipv4> via $GATEWAY dev $INTERFACE
+```
+
+Now we can launch our unikernel. It should be able to initialise a tunnel with
+your OpenVPN server. Here's the command to launch the unikernel with our Solo5
+tender:
 
 ```sh
 $ solo5-hvt --block:storage=alice.config \
   --net:service=tap1 --net:private=tap0 -- ovpn-router.hvt \
   --private-ipv4=10.8.0.3/24 --private-ipv4-gateway=10.8.0.2 \
   --ipv4=10.0.0.2/24 --ipv4-gateway=10.0.0.1
+```
+
+All we need to do now is redirect all our traffic to our unikernel. In this
+case, the unikernel uses the IP address `10.8.0.3`. So we're going to redirect
+all the packets to this IP address.
+
+```sh
+$ sudo ip route add 0.0.0.0/1 via 10.8.0.3 dev br0
+```
+
+And that's it! All our traffic uses our unikernel to connect directly to our
+OpenVPN server. We can confirm that, from the outside, we are recognised by the
+public IP address of our OpenVPN server rather than our real public IP address.
+
+```sh
+$ curl ifconfig.me
+<ipv4>
 ```
 
 [albatross]: https://github.com/robur-coop/albatross
