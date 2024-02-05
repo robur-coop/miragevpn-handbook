@@ -8,7 +8,8 @@ configuration as 'production-ready'. We'll be using Debian 12 and OpenVPN 2.6.3.
 So you probably have SSH access on your server. Let's connect to the server and
 install OpenVPN.
 ```sh
-$ ssh root@<ipv4>
+$ export OPENVPN_IP=<ipv4> # Must be set!
+$ ssh root@$OPENVPN_IP
 $ apt update
 $ apt upgrade
 $ apt install openvpn ufw

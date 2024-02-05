@@ -171,6 +171,7 @@ allows you to put the content of our materials directly into the configuration
 file:
 
 ```sh
+$ export OPENVPN_IP=<ipv4> # Must be set!
 $ cat >config.sh<<EOF
 #!/bin/bash
 
@@ -183,7 +184,7 @@ OUTPUT_FILE=\$5
 cat >\$OUTPUT_FILE<<PRELUDE
 client
 proto tcp
-remote <ipv4> 1194
+remote $OPENVPN_IP 1194
 nobind
 persist-key
 cipher AES-256-CBC
@@ -216,15 +217,15 @@ truncate -s \$(( ( ( \$SIZE + 512 - 1 ) / 512 ) * 512 )) \$OUTPUT_FILE
 EOF
 ```
 
-In this little script, you need to replace `<ipv4>` with the public IP address
+In this little script, you need to set `$OPENVPN_IP` to the public IP address
 of your OpenVPN server. This little script will generate a compatible
 configuration file for our unikernel. Just run it this way:
 
 ```sh
-$ scp root@<ipv4>:/root/easy-rsa/pki/ca.crt .
-$ scp root@<ipv4>:/root/easy-rsa/pki/issued/alice.crt .
-$ scp root@<ipv4>:/root/easy-rsa/pki/private/alice.key .
-$ scp root@<ipv4>:/etc/openvpn/server/ta.key .
+$ scp root@$OPENVPN_IP:/root/easy-rsa/pki/ca.crt .
+$ scp root@$OPENVPN_IP:/root/easy-rsa/pki/issued/alice.crt .
+$ scp root@$OPENVPN_IP:/root/easy-rsa/pki/private/alice.key .
+$ scp root@$OPENVPN_IP:/etc/openvpn/server/ta.key .
 $ chmod +x config.sh
 $ ./config.sh ca.crt alice.crt alice.key ta.key alice.config
 ```
@@ -251,7 +252,7 @@ We can therefore specify that any packets destined for our OpenVPN server must
 pass through our interface via our gateway.
 
 ```sh
-$ sudo ip route add <ipv4> via $GATEWAY dev $INTERFACE
+$ sudo ip route add $OPENVPN_IP via $GATEWAY dev $INTERFACE
 ```
 
 Now we can launch our unikernel. It should be able to initialise a tunnel with
@@ -278,8 +279,9 @@ OpenVPN server. We can confirm that, from the outside, we are recognised by the
 public IP address of our OpenVPN server rather than our real public IP address.
 
 ```sh
-$ curl ifconfig.me
-<ipv4>
+$ test $(curl ifconfig.me) = $OPENVPN_IP
+$ echo $?
+0
 ```
 
 [albatross]: https://github.com/robur-coop/albatross
