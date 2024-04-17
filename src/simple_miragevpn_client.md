@@ -240,6 +240,16 @@ We can now launch our unikernel. This involves using our Solo5 "tender" and
 defining the right routes to redirect all our traffic to br1 and to ensure that
 all encrypted traffic leaving our `br1` goes to our OpenVPN server. 
 
+The Solo5 tender is available via `apt` or on [GitHub][solo5].
+```sh
+$ apt install gnupg
+$ curl -fsSL https://apt.robur.coop/gpg.pub | gpg --dearmor > /usr/share/keyrings/apt.robur.coop.gpg
+$ echo "deb [signed-by=/usr/share/keyrings/apt.robur.coop.gpg] https://apt.robur.coop ubuntu-20.04 main" > /etc/apt/sources.list.d/robur.list
+# replace ubuntu-20.04 with e.g. debian-11 on a debian buster machine
+$ apt update
+$ apt install solo5
+```
+
 We need to know 2 pieces of information: the interface used to communicate with
 Internet and our gateway.
 
@@ -286,3 +296,4 @@ $ echo $?
 
 [albatross]: https://github.com/robur-coop/albatross
 [xen]: https://xenproject.org/
+[solo5]: https://github.com/solo5/Solo5
