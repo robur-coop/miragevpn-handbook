@@ -3,17 +3,18 @@ connections, and provides Internet connectivity (with NAT) for all
 authenticated clients. A single network interface is used for both client
 connections and providing connectivity.
 
-The unikernel will encrypt all packets received from the Internet and send
-them to the respective client. All packets received from a client will be
-decrypted and forwarded to the Internet. If "client-to-client" is enabled
-in the configuration, packets from one client which destination is another
-client will be forwarded by the server.
+The unikernel will encrypt all packets received from the Internet and send them
+to the respective client (if there's a NAT table entry for the quadruple source
+IP, destination IP, source port, destination port). All packets received from a
+client will be decrypted and forwarded to the Internet. If "client-to-client" is
+enabled in the configuration, packets from one client which destination is
+another client will be forwarded by the server.
 
 # Scope of the server
 
-The scope is at the moment limited to IPv4 (no IPv6), the server only listens
-on TCP (no UDP). Only layer 3 networking is supported (tun device), there's no
-support for tap devices.
+The scope is at the moment limited to IPv4 traffic over the tunnel (no IPv6),
+the server only listens on TCP (no UDP). Only layer 3 networking is supported
+(tun device), there's no support for tap devices.
 
 The server will route all traffic to its default gateway. If "client-to-client"
 is specified, packets for other clients will be forwarded to the specific
