@@ -22,6 +22,14 @@ client.
 Only a single network interface is used by the server, where both TCP listening
 and forwarding packets (using NAT) is done. NAT will always be used.
 
+## Authentication
+
+The server as is only authenticates via X.509 certificates. It is possible to
+authenticate username and password, but since we do can not in a MirageOS
+unikernel execute shell scripts, the verification hook script won't work.
+If you need username and password authentication, please get in touch via our
+issue tracker and we will find a solution.
+
 # Producing the unikernel binary
 
 We will provide reproducible binaries in the future, here we document how to
