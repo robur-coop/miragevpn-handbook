@@ -26,7 +26,7 @@ $ qvm-run -p personal 'cat qubes-miragevpn.xen' > vmlinuz
 ```
 
 Still from dom0, we now need to create a new VM from the downloaded image. An
-empty initramfs file must also be created:
+empty initramfs file must also be created (for QubesOS < 4.2):
 ```sh
 $ gzip -n9 < /dev/null > initramfs
 $ qvm-create \
