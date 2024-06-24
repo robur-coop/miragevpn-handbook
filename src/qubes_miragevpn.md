@@ -46,12 +46,12 @@ $ qvm-features qubes-miragevpn no-default-kernelopts 1
 
 The configuration of the MirageVPN client for QubesOS is constrained in the same
 way as our MirageVPN client for KVM: the configuration must fit into a single
-file. This file must be compressed and named to `config.ovpn` with the `tar`
-command and made available to the unikernel via `qvm`.
+file. This file must be compressed with the `tar` command and made available to
+the unikernel via `qvm`.
 ```sh
-$ cp alice.config config.ovpn
-$ tar cvf config.tar config.ovpn
+$ tar cvf config.tar alice.config
 $ qvm-volume import qubes-miragevpn:root config.tar
+$ qvm-prefs --set qubes-miragevpn -- kernelopts '--config_key=alice.config'
 ```
 
 Finally, we need to configure a VM (like personal) to use our VPN client for all
