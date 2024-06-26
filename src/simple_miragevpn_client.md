@@ -236,6 +236,8 @@ bytes must correspond to `'\000'`.
 
 # How to launch your MirageVPN client
 
+You can download a [reproducible binary](https://builds.robur.coop/job/miragevpn-router/build/latest). Get the `bin/ovpn-router.hvt` artifact.
+
 We can now launch our unikernel. This involves using our Solo5 "tender" and
 defining the right routes to redirect all our traffic to br1 and to ensure that
 all encrypted traffic leaving our `br1` goes to our OpenVPN server. 

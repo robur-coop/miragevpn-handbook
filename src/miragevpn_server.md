@@ -31,22 +31,27 @@ unikernel execute shell scripts, the verification hook script won't work.
 If you need username and password authentication, please get in touch via our
 issue tracker and we will find a solution.
 
-# Producing the unikernel binary
+# Getting the unikernel binary
+
+You can download the unikernel binary from [our reproducible build infrastructure](https://builds.robur.coop/job/miragevpn-server/build/latest). Download the `bin/ovpn-server.hvt` artifact.
+If you did that, skip to "VPN Configuration".
+
+## Building from source (alternative)
 
 We will provide reproducible binaries in the future, here we document how to
 build the unikernel from source.
 
-## Prerequisites
+### Prerequisites
 
 First, make sure to have ["opam"](https://opam.ocaml.org) and
 ["mirage"](https://mirage.io) installed on your system.
 
-## Git repository
+### Git repository
 
 Do a `git clone https://github.com/robur-coop/miragevpn.git` to retrieve the
 source code of the MirageVPN server.
 
-## Building
+### Building
 
 Inside of the cloned repository, execute `mirage configure` (other targets are
 available, please check the mirage documentation):
