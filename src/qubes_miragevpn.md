@@ -15,7 +15,8 @@ for QubesOS. We'll assume that the OpenVPN server is configured as described in
 ## Download and configuration
 
 You can download the unikernel from its official repository:
-https://github.com/robur-coop/qubes-miragevpn
+[GitHub](https://github.com/robur-coop/qubes-miragevpn) or from our reproducible
+build platform [builds.robur.coop][qubes-miragevpn].
 
 Next, copy the unikernel to dom0 with this command (from a dom0 terminal). In
 this example, we've uploaded the unikernel to the _app-vm_ `personal`:
@@ -62,3 +63,4 @@ $ qvm-prefs --set <my-app-vm> netvm qubes-miragevpn
 
 [mirageos]: https://mirage.io/
 [qubesos]: https://www.qubes-os.org/
+[qubes-miragevpn]: https://builds.robur.coop/job/miragevpn-qubes/build/latest/f/bin/qubes-miragevpn.xen
