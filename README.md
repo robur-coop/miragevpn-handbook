@@ -1,5 +1,7 @@
 # MirageVPN book
 
+You can also read a [rendered version](https://robur-coop.github.io/miragevpn-handbook/).
+
 This book use `mdbook` and `mdbook-graphviz`. You can install them via `rustup`
 and `cargo`:
 
