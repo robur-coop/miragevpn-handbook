@@ -11,7 +11,7 @@ $ cargo install mdbook
 $ cargo install mdbook-graphviz
 $ export PATH=$PATH:$HOME/.cargo/bin
 $ git clone https://git.robur.coop/robur/miragevpn-handbook
-$ cd miragevpn-book
+$ cd miragevpn-handbook
 $ mdbook serve
 ```
 
